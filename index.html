@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#FF6B6B">
+<title>暖暖读书</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,"PingFang SC","Microsoft YaHei","Noto Sans SC",sans-serif;background:#FFF8F0;color:#2D3436;min-height:100vh;overflow-x:hidden;-webkit-tap-highlight-color:transparent}
+.page{display:none;min-height:100vh}.page.active{display:block}
+
+/* ===== 首页 ===== */
+.home-header{background:linear-gradient(135deg,#FF6B6B,#FF8E8E);color:#fff;padding:24px 20px 20px;border-radius:0 0 24px 24px}
+.home-header h1{font-size:22px;display:flex;align-items:center;gap:8px}
+.home-header .date{font-size:13px;opacity:.85;margin-top:6px}
+.home-header .streak-badge{display:inline-flex;align-items:center;gap:4px;background:rgba(255,255,255,.2);padding:4px 12px;border-radius:20px;font-size:12px;margin-top:8px}
+
+.encourage-card{background:linear-gradient(135deg,#FFF3E0,#FFE0B2);border-radius:16px;padding:16px;margin:16px 16px 0;box-shadow:0 2px 12px rgba(0,0,0,.06);position:relative;overflow:hidden}
+.encourage-card .label{font-size:11px;color:#E65100;font-weight:600}
+.encourage-card .text{font-size:15px;color:#BF360C;line-height:1.6;margin-top:4px;font-weight:500}
+.encourage-card .emoji{font-size:28px;position:absolute;bottom:4px;right:14px;opacity:.4}
+
+.subject-card{background:#fff;border-radius:16px;padding:18px;margin:12px 16px 0;box-shadow:0 2px 12px rgba(0,0,0,.06);touch-action:manipulation;position:relative;overflow:hidden}
+.subject-card:active{transform:scale(.98)}
+.subject-card.yuwen{border-left:5px solid #FF6B6B}
+.subject-card.yingyu{border-left:5px solid #4ECDC4}
+.subject-card .card-title{font-size:18px;font-weight:700;display:flex;align-items:center;gap:8px}
+.subject-card .card-sub{font-size:13px;color:#636E72;margin-top:6px}
+.subject-card .card-sub.done{color:#00B894;font-weight:600}
+.subject-card .stamp{position:absolute;top:10px;right:12px;background:#00B894;color:#fff;font-size:11px;padding:3px 10px;border-radius:8px;font-weight:600}
+.subject-card .card-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px}
+.subject-card.yuwen .card-icon{background:#FFE8E8}
+.subject-card.yingyu .card-icon{background:#E0F7F5}
+
+.stats-row{background:#fff;border-radius:16px;padding:16px;margin:12px 16px 0;box-shadow:0 2px 12px rgba(0,0,0,.06);display:flex;justify-content:space-around;text-align:center}
+.stat-item .stat-num{font-size:24px;font-weight:700}
+.stat-item .stat-label{font-size:11px;color:#636E72;margin-top:2px}
+.stat-item:nth-child(1) .stat-num{color:#FF6B6B}
+.stat-item:nth-child(2) .stat-num{color:#4ECDC4}
+.stat-item:nth-child(3) .stat-num{color:#FFB347}
+
+/* 成就区 */
+.achievement-bar{background:#fff;border-radius:16px;padding:14px 16px;margin:12px 16px 0;box-shadow:0 2px 12px rgba(0,0,0,.06)}
+.achievement-bar .bar-title{font-size:13px;font-weight:600;margin-bottom:8px}
+.achievement-bar .badges{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px}
+.achievement-bar .badges::-webkit-scrollbar{display:none}
+.badge-item{display:flex;flex-direction:column;align-items:center;min-width:50px;gap:3px}
+.badge-item .b-icon{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;background:#F0F0F0;filter:grayscale(1) opacity(.4)}
+.badge-item.unlocked .b-icon{filter:none;background:linear-gradient(135deg,#FFF176,#FFD54F);box-shadow:0 2px 8px rgba(255,213,79,.4)}
+.badge-item .b-name{font-size:9px;color:#636E72;text-align:center}
+.badge-item.unlocked .b-name{color:#2D3436;font-weight:600}
+
+/* 推荐入口 */
+.promo-card{background:linear-gradient(135deg,#E8F5E9,#C8E6C9);border-radius:16px;padding:16px;margin:12px 16px 16px;box-shadow:0 2px 12px rgba(0,0,0,.06);touch-action:manipulation;display:flex;align-items:center;gap:12px}
+.promo-card:active{transform:scale(.98)}
+.promo-card .promo-icon{font-size:32px}
+.promo-card .promo-text{flex:1}
+.promo-card .promo-title{font-size:15px;font-weight:700;color:#2E7D32}
+.promo-card .promo-desc{font-size:12px;color:#4CAF50;margin-top:2px}
+.promo-card .promo-arrow{font-size:16px;color:#4CAF50}
+
+/* ===== 录音页 ===== */
+.rec-header{padding:16px 20px;display:flex;align-items:center;gap:12px}
+.rec-back{font-size:14px;color:#636E72;touch-action:manipulation;padding:4px 8px}
+.rec-title{font-size:20px;font-weight:700;flex:1}
+.rec-title.yuwen{color:#FF6B6B}
+.rec-title.yingyu{color:#4ECDC4}
+
+.dur-group{display:flex;gap:10px;justify-content:center;margin:0 16px 20px}
+.dur-btn{padding:8px 24px;border-radius:20px;border:2px solid #eee;background:#fff;font-size:15px;font-weight:600;touch-action:manipulation}
+.dur-btn.sel-yw{background:#FF6B6B;color:#fff;border-color:#FF6B6B}
+.dur-btn.sel-yy{background:#4ECDC4;color:#fff;border-color:#4ECDC4}
+
+.timer-display{text-align:center;margin:20px 0}
+.timer-num{font-size:64px;font-weight:700;line-height:1}
+.timer-num.yuwen{color:#FF6B6B}
+.timer-num.yingyu{color:#4ECDC4}
+.timer-status{font-size:15px;color:#636E72;margin-top:8px}
+.timer-status.recording{color:#FF6B6B;font-weight:600;animation:pulse 1.2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+
+.result-box{background:#fff;border-radius:16px;margin:16px;padding:14px;min-height:100px;box-shadow:0 2px 12px rgba(0,0,0,.06);font-size:15px;line-height:1.8;color:#2D3436;transition:all .3s}
+.result-box.subtitle-mode{background:linear-gradient(135deg,#2D3436,#3D3D3D);min-height:160px;padding:20px;display:flex;flex-direction:column;justify-content:center;align-items:center;border-radius:20px;margin:16px}
+.result-box.subtitle-mode .sub-final{font-size:22px;font-weight:700;line-height:1.6;color:#fff;text-align:center;word-break:break-all}
+.result-box.subtitle-mode .sub-interim{font-size:20px;font-weight:500;line-height:1.6;color:rgba(255,255,255,.5);text-align:center;word-break:break-all;margin-top:4px}
+.result-box.subtitle-mode .sub-cursor{display:inline-block;width:2px;height:1em;background:#FF6B6B;margin-left:2px;animation:blink 1s infinite;vertical-align:middle}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+.result-box .placeholder{color:#B2BEC3}
+.result-box .low-confidence{color:#D63031;border-bottom:1px wavy #D63031}
+
+.rec-btns{display:flex;gap:10px;justify-content:center;padding:16px 16px 24px;flex-wrap:wrap}
+.rec-btn{padding:12px 28px;border-radius:24px;border:none;font-size:16px;font-weight:600;color:#fff;touch-action:manipulation}
+.rec-btn:disabled{opacity:.4}
+.rec-btn.record{background:#FF6B6B}
+.rec-btn.record.yingyu{background:#4ECDC4}
+.rec-btn.play{background:#4ECDC4}
+.rec-btn.save{background:#00B894}
+.rec-btn.delete{background:#636E72}
+
+/* ===== 历史页 ===== */
+.history-header{padding:16px 20px;display:flex;align-items:center;gap:12px}
+.history-back{font-size:14px;color:#636E72;touch-action:manipulation;padding:4px 8px}
+.history-title{font-size:20px;font-weight:700;flex:1}
+
+.history-list{padding:0 16px 16px}
+.history-item{background:#fff;border-radius:12px;padding:14px;margin-bottom:10px;box-shadow:0 2px 8px rgba(0,0,0,.05)}
+.history-item .hi-top{display:flex;justify-content:space-between;align-items:center}
+.history-item .hi-subject{font-size:13px;font-weight:600;padding:2px 8px;border-radius:6px;color:#fff}
+.history-item .hi-subject.yuwen{background:#FF6B6B}
+.history-item .hi-subject.yingyu{background:#4ECDC4}
+.history-item .hi-date{font-size:12px;color:#636E72}
+.history-item .hi-duration{font-size:12px;color:#636E72;margin-top:4px}
+.history-item .hi-btns{display:flex;gap:8px;margin-top:8px}
+.hi-btn{padding:5px 14px;border-radius:12px;font-size:12px;border:none;color:#fff;touch-action:manipulation}
+.hi-btn.play{background:#4ECDC4}
+.hi-btn.del{background:#eee;color:#636E72}
+
+.empty-state{text-align:center;padding:60px 20px;color:#B2BEC3;font-size:15px}
+
+/* ===== Toast ===== */
+.toast{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,.75);color:#fff;padding:16px 28px;border-radius:16px;font-size:16px;z-index:999;text-align:center;max-width:280px;pointer-events:none;opacity:0;transition:opacity .3s}
+.toast.show{opacity:1}
+
+/* ===== 弹窗 ===== */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:100;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s}
+.modal-overlay.show{opacity:1;pointer-events:auto}
+.modal-box{background:#fff;border-radius:20px;padding:28px 24px;margin:0 32px;text-align:center;transform:scale(.9);transition:transform .3s}
+.modal-overlay.show .modal-box{transform:scale(1)}
+.modal-box .modal-icon{font-size:48px;margin-bottom:12px}
+.modal-box .modal-title{font-size:20px;font-weight:700;margin-bottom:8px}
+.modal-box .modal-text{font-size:15px;color:#636E72;line-height:1.6;margin-bottom:20px}
+.modal-box .modal-btn{padding:12px 40px;border-radius:24px;border:none;font-size:16px;font-weight:600;color:#fff;touch-action:manipulation}
+</style>
+</head>
+<body>
+
+<!-- 首页 -->
+<div id="home" class="page active">
+  <div class="home-header">
+    <h1>🍀 暖暖读书</h1>
+    <div class="date" id="homeDate"></div>
+    <div class="streak-badge" id="homeStreak">🔥 连续打卡 0 天</div>
+  </div>
+  <div class="encourage-card">
+    <div class="label">💡 每日鼓励</div>
+    <div class="text" id="homeEncourage"></div>
+    <div class="emoji">🌟</div>
+  </div>
+  <div class="subject-card yuwen" id="cardYuwen">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="card-icon">📖</div>
+      <div>
+        <div class="card-title">语文打卡</div>
+        <div class="card-sub" id="ywStatus">点击开始今日阅读</div>
+      </div>
+    </div>
+  </div>
+  <div class="subject-card yingyu" id="cardYingyu">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="card-icon">🔤</div>
+      <div>
+        <div class="card-title">英语打卡</div>
+        <div class="card-sub" id="yyStatus">点击开始今日阅读</div>
+      </div>
+    </div>
+  </div>
+  <div class="stats-row">
+    <div class="stat-item"><div class="stat-num" id="statStreak">0</div><div class="stat-label">连续打卡</div></div>
+    <div class="stat-item"><div class="stat-num" id="statTotal">0</div><div class="stat-label">累计打卡</div></div>
+    <div class="stat-item"><div class="stat-num" id="statToday">0</div><div class="stat-label">今日已打</div></div>
+  </div>
+  <div class="achievement-bar">
+    <div class="bar-title">🏆 成就徽章</div>
+    <div class="badges" id="badges"></div>
+  </div>
+  <div class="promo-card" id="promoCard">
+    <div class="promo-icon">📚</div>
+    <div class="promo-text">
+      <div class="promo-title">暖暖陪读加油站</div>
+      <div class="promo-desc">AI推荐教辅资源，免费领取学习资料</div>
+    </div>
+    <div class="promo-arrow">›</div>
+  </div>
+</div>
+
+<!-- 录音页 -->
+<div id="record" class="page">
+  <div class="rec-header">
+    <div class="rec-back" id="recBack">← 返回</div>
+    <div class="rec-title" id="recTitle">📖 语文打卡</div>
+  </div>
+  <div class="dur-group">
+    <div class="dur-btn" id="dur10">10分钟</div>
+    <div class="dur-btn" id="dur20">20分钟</div>
+    <div class="dur-btn" id="dur30">30分钟</div>
+  </div>
+  <div style="margin:0 16px 16px">
+    <input id="recTitleInput" type="text" placeholder="📖 今天读了什么？（选填标题）" style="width:100%;padding:10px 14px;border:2px solid #eee;border-radius:12px;font-size:14px;outline:none;background:#fff;transition:border-color .2s" onfocus="this.style.borderColor=this.dataset.color" onblur="this.style.borderColor='#eee'">
+  </div>
+  <div class="timer-display">
+    <div class="timer-num" id="timerNum">10:00</div>
+    <div class="timer-status" id="timerStatus">选择时长后点击开始录音</div>
+  </div>
+  <div class="result-box" id="resultBox"><span class="placeholder">朗读内容将显示在这里...</span></div>
+  <div class="rec-btns">
+    <button class="rec-btn record" id="btnRecord">🎤 开始录音</button>
+    <button class="rec-btn play" id="btnPlay" disabled>▶ 回放</button>
+    <button class="rec-btn save" id="btnSave" disabled>✅ 保存</button>
+  </div>
+</div>
+
+<!-- 历史页 -->
+<div id="history" class="page">
+  <div class="history-header">
+    <div class="history-back" id="histBack">← 返回</div>
+    <div class="history-title">📅 打卡记录</div>
+  </div>
+  <div class="history-list" id="historyList"></div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+<!-- Modal -->
+<div class="modal-overlay" id="modal">
+  <div class="modal-box">
+    <div class="modal-icon" id="modalIcon"></div>
+    <div class="modal-title" id="modalTitle"></div>
+    <div class="modal-text" id="modalText"></div>
+    <button class="modal-btn" id="modalBtn" style="background:#FF6B6B">太棒了！</button>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+// ===== 数据 =====
+var STORE_KEY = "nuannuan_h5";
+var today = fmtDate(new Date());
+
+function load(){ try{ return JSON.parse(localStorage.getItem(STORE_KEY)) || {}; }catch(e){ return {}; } }
+function save(d){ localStorage.setItem(STORE_KEY, JSON.stringify(d)); }
+
+function fmtDate(d){ var y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),dd=String(d.getDate()).padStart(2,'0'); return y+'-'+m+'-'+dd; }
+function fmtTime(s){ var m=Math.floor(s/60),ss=s%60; return String(m).padStart(2,'0')+':'+String(ss).padStart(2,'0'); }
+
+var encourages = [
+"读书破万卷，下笔如有神！","每天进步一点点，积少成多！","你是阅读小达人，继续加油！",
+"书中自有黄金屋，坚持阅读！","今天也要做最棒的阅读小能手！","阅读让你更聪明，继续前行！",
+"每一页都是新的冒险！","坚持打卡的你最了不起！","知识就是力量，读书让你更强！",
+"今天的努力，明天的收获！","阅读是打开世界的钥匙！","你比昨天又多读了一页！",
+"小小阅读家，大大梦想家！","每天阅读，快乐成长！","你的坚持终将闪闪发光！",
+"书山有路勤为径！","读书让你成为更好的自己！","坚持就是胜利，你已经很棒了！",
+"每一段文字都是一扇窗！","读万卷书，行万里路！"
+];
+
+var completionMsgs = [
+"太棒了！你完成了今日阅读！","坚持的你最了不起！","又完成一次打卡，真厉害！",
+"阅读小达人就是你！","今天的你闪闪发光！","了不起的阅读家！",
+"你做到了，继续加油！","阅读让你更优秀！","打卡成功，为你点赞！","每天阅读，每天进步！"
+];
+
+var midMsgs = [
+"已经过半了，加油！💪","坚持住，你可以的！🌟","继续读，你很棒！🔥","还有一小半，冲啊！🚀","快到终点了，别放弃！⚡"
+];
+
+var badgeDefs = [
+{id:"first",name:"初出茅庐",icon:"🌟",desc:"完成第一次打卡"},
+{id:"streak3",name:"三日之约",icon:"🔥",desc:"连续打卡3天"},
+{id:"streak7",name:"一周达人",icon:"🏆",desc:"连续打卡7天"},
+{id:"streak14",name:"两周坚持",icon:"💪",desc:"连续打卡14天"},
+{id:"streak30",name:"月度冠军",icon:"👑",desc:"连续打卡30天"},
+{id:"total10",name:"十全十美",icon:"🎯",desc:"累计打卡10次"},
+{id:"total30",name:"三十而立",icon:"📚",desc:"累计打卡30次"},
+{id:"total50",name:"半百之旅",icon:"🎓",desc:"累计打卡50次"},
+{id:"total100",name:"百读不厌",icon:"💎",desc:"累计打卡100次"},
+{id:"both1",name:"双科齐下",icon:"📖",desc:"一天内语文英语都打卡"},
+{id:"long30",name:"长读达人",icon:"⏰",desc:"完成一次30分钟阅读"},
+{id:"early",name:"晨读之星",icon:"🌅",desc:"早上8点前完成打卡"}
+];
+
+// ===== 状态 =====
+var curPage = "home";
+var subject = "yuwen";
+var duration = 10;
+var remaining = 600;
+var isRecording = false;
+var timerInterval = null;
+var mediaRecorder = null;
+var audioChunks = [];
+var audioBlob = null;
+var audioUrl = null;
+var currentAudio = null;
+var recognition = null;
+var recognizedText = "";
+var midEncourageShown = false;
+
+// Native audio capture - create input element upfront so click() works in user gesture
+var nativeInput = document.createElement('input');
+nativeInput.type = 'file';
+nativeInput.accept = 'audio/*';
+nativeInput.capture = 'user';
+nativeInput.style.display = 'none';
+document.body.appendChild(nativeInput);
+nativeInput.addEventListener('change', function(){
+  if(this.files && this.files[0]){
+    var file = this.files[0];
+    audioBlob = file;
+    audioUrl = URL.createObjectURL(file);
+    document.getElementById('btnPlay').disabled = false;
+    document.getElementById('btnSave').disabled = false;
+    document.getElementById('btnRecord').textContent = '🎤 重新录音';
+    document.getElementById('timerStatus').textContent = '录音完成！可回放或保存';
+    document.getElementById('resultBox').className = 'result-box';
+    document.getElementById('resultBox').innerHTML = '<span style="color:#00B894">✅ 录音已保存</span>';
+    recognizedText = "";
+    duration = duration || 10;
+  }
+});
+
+function useNativeCapture(){
+  nativeInput.value = '';
+  nativeInput.click();
+}
+
+// ===== 页面切换 =====
+function showPage(name){
+  document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
+  document.getElementById(name).classList.add('active');
+  curPage = name;
+}
+
+// ===== 首页 =====
+function refreshHome(){
+  var d = new Date();
+  var weekDay = ["日","一","二","三","四","五","六"][d.getDay()];
+  document.getElementById('homeDate').textContent = d.getFullYear()+'年'+(d.getMonth()+1)+'月'+d.getDate()+'日 星期'+weekDay;
+
+  var idx = Math.floor(d.getTime()/86400000) % encourages.length;
+  document.getElementById('homeEncourage').textContent = encourages[idx];
+
+  var data = load();
+  var streak = data.streak || 0;
+  var total = data.total || 0;
+  var todayCount = data.records ? data.records.filter(function(r){return r.date===today;}).length : 0;
+
+  document.getElementById('homeStreak').textContent = '🔥 连续打卡 '+streak+' 天';
+  document.getElementById('statStreak').textContent = streak;
+  document.getElementById('statTotal').textContent = total;
+  document.getElementById('statToday').textContent = todayCount;
+
+  var ywDone = data.records && data.records.some(function(r){return r.date===today && r.subject==='yuwen';});
+  var yyDone = data.records && data.records.some(function(r){return r.date===today && r.subject==='yingyu';});
+  var ywEl = document.getElementById('ywStatus');
+  var yyEl = document.getElementById('yyStatus');
+  ywEl.textContent = ywDone ? '✅ 今日已完成' : '点击开始今日阅读';
+  ywEl.className = 'card-sub' + (ywDone ? ' done' : '');
+  yyEl.textContent = yyDone ? '✅ 今日已完成' : '点击开始今日阅读';
+  yyEl.className = 'card-sub' + (yyDone ? ' done' : '');
+
+  // Badges
+  var unlocked = data.badges || [];
+  var html = '';
+  badgeDefs.forEach(function(b){
+    var u = unlocked.indexOf(b.id) >= 0;
+    html += '<div class="badge-item'+(u?' unlocked':'')+'"><div class="b-icon">'+b.icon+'</div><div class="b-name">'+b.name+'</div></div>';
+  });
+  document.getElementById('badges').innerHTML = html;
+}
+
+function checkBadges(){
+  var data = load();
+  var badges = data.badges || [];
+  var streak = data.streak || 0;
+  var total = data.total || 0;
+  var records = data.records || [];
+
+  function unlock(id){
+    if(badges.indexOf(id)<0){ badges.push(id); }
+  }
+  if(total>=1) unlock('first');
+  if(streak>=3) unlock('streak3');
+  if(streak>=7) unlock('streak7');
+  if(streak>=14) unlock('streak14');
+  if(streak>=30) unlock('streak30');
+  if(total>=10) unlock('total10');
+  if(total>=30) unlock('total30');
+  if(total>=50) unlock('total50');
+  if(total>=100) unlock('total100');
+  var bothDone = records.some(function(r){return r.date===today && r.subject==='yuwen';}) && records.some(function(r){return r.date===today && r.subject==='yingyu';});
+  if(bothDone) unlock('both1');
+  if(records.some(function(r){return r.duration>=30;})) unlock('long30');
+  if(records.some(function(r){var h=new Date(r.time).getHours();return r.date===today && h<8;})) unlock('early');
+
+  data.badges = badges;
+  save(data);
+}
+
+// ===== 录音页 =====
+function openRecord(subj){
+  subject = subj;
+  duration = 10;
+  remaining = 600;
+  isRecording = false;
+  audioChunks = [];
+  audioBlob = null;
+  audioUrl = null;
+  recognizedText = "";
+  midEncourageShown = false;
+
+  if(currentAudio){ currentAudio.pause(); currentAudio=null; }
+
+  var isYy = subj==='yingyu';
+  var titleInput = document.getElementById('recTitleInput');
+  titleInput.value = '';
+  titleInput.dataset.color = isYy ? '#4ECDC4' : '#FF6B6B';
+
+  var titleEl = document.getElementById('recTitle');
+  titleEl.textContent = isYy ? '🔤 英语打卡' : '📖 语文打卡';
+  titleEl.className = 'rec-title ' + subj;
+
+  var timerNum = document.getElementById('timerNum');
+  timerNum.textContent = '10:00';
+  timerNum.className = 'timer-num ' + subj;
+
+  document.getElementById('timerStatus').textContent = '选择时长后点击开始录音';
+  document.getElementById('timerStatus').className = 'timer-status';
+  document.getElementById('resultBox').className = 'result-box';
+  document.getElementById('resultBox').innerHTML = '<span class="placeholder">朗读内容将显示在这里...</span>';
+
+  var recBtn = document.getElementById('btnRecord');
+  recBtn.textContent = '🎤 开始录音';
+  recBtn.className = 'rec-btn record' + (isYy ? ' yingyu' : '');
+  recBtn.disabled = false;
+  document.getElementById('btnPlay').disabled = true;
+  document.getElementById('btnSave').disabled = true;
+
+  // Duration buttons
+  ['dur10','dur20','dur30'].forEach(function(id){
+    var el = document.getElementById(id);
+    el.className = 'dur-btn';
+  });
+  document.getElementById('dur10').className = 'dur-btn' + (isYy ? ' sel-yy' : ' sel-yw');
+
+  showPage('record');
+}
+
+function selectDuration(mins){
+  if(isRecording) return;
+  duration = mins;
+  remaining = mins * 60;
+  document.getElementById('timerNum').textContent = fmtTime(remaining);
+  var isYy = subject==='yingyu';
+  var cls = isYy ? 'sel-yy' : 'sel-yw';
+  ['dur10','dur20','dur30'].forEach(function(id){
+    document.getElementById(id).className = 'dur-btn';
+  });
+  document.getElementById('dur'+mins).className = 'dur-btn '+cls;
+  document.getElementById('timerStatus').textContent = '已选择'+mins+'分钟，点击开始录音';
+}
+
+function startRecording(){
+  if(isRecording) return;
+
+  // Request mic
+  navigator.mediaDevices.getUserMedia({audio:true}).then(function(stream){
+    isRecording = true;
+    remaining = duration * 60;
+    midEncourageShown = false;
+    audioChunks = [];
+    recognizedText = "";
+
+    // MediaRecorder
+    try{
+      mediaRecorder = new MediaRecorder(stream);
+    }catch(e){
+      toast("录音启动失败，请检查浏览器设置");
+      return;
+    }
+    mediaRecorder.ondataavailable = function(e){ if(e.data.size>0) audioChunks.push(e.data); };
+    mediaRecorder.onstop = function(){
+      stream.getTracks().forEach(function(t){t.stop();});
+      audioBlob = new Blob(audioChunks, {type:'audio/webm'});
+      audioUrl = URL.createObjectURL(audioBlob);
+      document.getElementById('btnPlay').disabled = false;
+      document.getElementById('btnSave').disabled = false;
+    };
+    mediaRecorder.start();
+
+    // Speech recognition
+    startRecognition();
+
+    // UI
+    document.getElementById('btnRecord').textContent = '⏹ 停止录音';
+    document.getElementById('timerStatus').textContent = '🔴 录音中...';
+    document.getElementById('timerStatus').className = 'timer-status recording';
+    document.getElementById('resultBox').className = 'result-box subtitle-mode';
+    document.getElementById('resultBox').innerHTML = '<div class="sub-interim">开始朗读，文字将在这里实时显示...<span class="sub-cursor"></span></div>';
+    document.getElementById('btnPlay').disabled = true;
+    document.getElementById('btnSave').disabled = true;
+
+    // Timer
+    if(timerInterval) clearInterval(timerInterval);
+    timerInterval = setInterval(timerTick, 1000);
+    updateTimerDisplay();
+  }).catch(function(err){
+    console.error("Mic error:", err);
+    toast("无法录音，请允许麦克风权限");
+  });
+}
+
+function startRecognition(){
+  var SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SpeechRecognition) return;
+  try{
+    recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = subject==='yingyu' ? 'en-US' : 'zh-CN';
+
+    recognition.onresult = function(event){
+      var final = '', interim = '';
+      for(var i=0;i<event.results.length;i++){
+        var t = event.results[i][0].transcript;
+        if(event.results[i].isFinal){
+          final += t;
+        }else{
+          interim += t;
+        }
+      }
+      recognizedText = final;
+      var html = '';
+      if(final){
+        html += '<div class="sub-final">' + final + '</div>';
+      }
+      if(interim){
+        html += '<div class="sub-interim">' + interim + '<span class="sub-cursor"></span></div>';
+      }
+      if(!final && !interim){
+        html = '<div class="sub-interim">开始朗读，文字将在这里实时显示...<span class="sub-cursor"></span></div>';
+      }
+      document.getElementById('resultBox').innerHTML = html;
+      // Auto scroll
+      var box = document.getElementById('resultBox');
+      box.scrollTop = box.scrollHeight;
+    };
+    recognition.onerror = function(){};
+    recognition.onend = function(){
+      if(isRecording){ try{recognition.start();}catch(e){} }
+    };
+    recognition.start();
+  }catch(e){}
+}
+
+function stopRecording(){
+  if(!isRecording) return;
+  isRecording = false;
+
+  if(mediaRecorder && mediaRecorder.state!=='inactive'){ try{mediaRecorder.stop();}catch(e){} }
+  if(recognition){ try{recognition.stop();}catch(e){} recognition=null; }
+  if(timerInterval){ clearInterval(timerInterval); timerInterval=null; }
+
+  stream_getTracks_stop();
+
+  document.getElementById('btnRecord').textContent = '🎤 重新录音';
+  document.getElementById('timerStatus').textContent = '录音完成！可回放或保存';
+  document.getElementById('timerStatus').className = 'timer-status';
+  document.getElementById('resultBox').className = 'result-box';
+  // Re-render final text in normal mode
+  if(recognizedText){
+    document.getElementById('resultBox').innerHTML = recognizedText;
+  }
+}
+
+function stream_getTracks_stop(){
+  // tracks already stopped in onstop
+}
+
+function timerTick(){
+  if(!isRecording) return;
+  remaining--;
+  updateTimerDisplay();
+
+  // Mid encourage
+  var halfPoint = Math.floor(duration*30);
+  if(!midEncourageShown && remaining <= halfPoint && remaining > halfPoint-2){
+    midEncourageShown = true;
+    var msg = midMsgs[Math.floor(Math.random()*midMsgs.length)];
+    document.getElementById('timerStatus').textContent = msg;
+  }
+  if(remaining===60){
+    document.getElementById('timerStatus').textContent = '最后1分钟，冲刺！🔥';
+  }
+
+  if(remaining<=0){
+    stopRecording();
+    saveCheckin(true);
+  }
+}
+
+function updateTimerDisplay(){
+  document.getElementById('timerNum').textContent = fmtTime(Math.max(0,remaining));
+}
+
+function togglePlayback(){
+  if(currentAudio){
+    currentAudio.pause();
+    currentAudio = null;
+    document.getElementById('btnPlay').textContent = '▶ 回放';
+    return;
+  }
+  if(!audioUrl) return;
+  currentAudio = new Audio(audioUrl);
+  currentAudio.onended = function(){
+    document.getElementById('btnPlay').textContent = '▶ 回放';
+    currentAudio = null;
+  };
+  currentAudio.play();
+  document.getElementById('btnPlay').textContent = '⏸ 播放中';
+}
+
+function saveCheckin(autoSave){
+  var data = load();
+  var records = data.records || [];
+
+  // Check duplicate
+  var dup = records.some(function(r){return r.date===today && r.subject===subject;});
+  if(dup){
+    toast("今天已经打过卡了哦");
+    showPage('home');
+    refreshHome();
+    return;
+  }
+
+  // Save audio to IndexedDB for long-term storage
+  var recordId = Date.now();
+  if(audioBlob){
+    saveAudioToDB(recordId, audioBlob);
+  }
+
+  var record = {
+    id: recordId,
+    date: today,
+    subject: subject,
+    duration: duration,
+    time: new Date().toISOString(),
+    text: recognizedText || "",
+    title: document.getElementById('recTitleInput').value || "",
+    hasAudio: !!audioBlob
+  };
+  records.push(record);
+  data.records = records;
+
+  // Update stats
+  data.total = (data.total||0) + 1;
+  var todayRecords = records.filter(function(r){return r.date===today;});
+  var todayCount = todayRecords.length;
+
+  // Streak
+  var yesterday = fmtDate(new Date(Date.now()-86400000));
+  var ydAny = records.some(function(r){return r.date===yesterday;});
+  if(todayCount===1){
+    data.streak = ydAny ? (data.streak||0)+1 : 1;
+  }
+
+  save(data);
+  checkBadges();
+
+  // Show completion
+  var msg = completionMsgs[Math.floor(Math.random()*completionMsgs.length)];
+  showModal("🎉", "打卡成功！", msg, "#00B894", function(){
+    showPage('home');
+    refreshHome();
+  });
+}
+
+// ===== IndexedDB for audio =====
+var db = null;
+function openDB(callback){
+  if(db){ callback(db); return; }
+  var req = indexedDB.open("NuannuanAudio", 1);
+  req.onupgradeneeded = function(e){ e.target.result.createObjectStore("audio", {keyPath:"id"}); };
+  req.onsuccess = function(e){ db = e.target.result; callback(db); };
+  req.onerror = function(){ callback(null); };
+}
+
+function saveAudioToDB(id, blob){
+  openDB(function(db){
+    if(!db) return;
+    var tx = db.transaction("audio","readwrite");
+    tx.objectStore("audio").put({id:id, blob:blob});
+  });
+}
+
+function getAudioFromDB(id, callback){
+  openDB(function(db){
+    if(!db){ callback(null); return; }
+    var tx = db.transaction("audio","readonly");
+    var req = tx.objectStore("audio").get(id);
+    req.onsuccess = function(){ callback(req.result ? req.result.blob : null); };
+    req.onerror = function(){ callback(null); };
+  });
+}
+
+function deleteAudioFromDB(id){
+  openDB(function(db){
+    if(!db) return;
+    var tx = db.transaction("audio","readwrite");
+    tx.objectStore("audio").delete(id);
+  });
+}
+
+// ===== 历史页 =====
+function openHistory(){
+  var data = load();
+  var records = (data.records || []).slice().reverse();
+  var listEl = document.getElementById('historyList');
+
+  if(records.length===0){
+    listEl.innerHTML = '<div class="empty-state">还没有打卡记录哦\n快去读书打卡吧！📖</div>';
+  }else{
+    var html = '';
+    records.forEach(function(r){
+      var isYw = r.subject==='yuwen';
+      var subLabel = isYw ? '语文' : '英语';
+      var subCls = r.subject;
+      var durLabel = r.duration + '分钟';
+      var dateParts = r.date.split('-');
+      var dateLabel = dateParts[1]+'/'+dateParts[2];
+      var timeLabel = r.time ? new Date(r.time).toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'}) : '';
+      var textPreview = r.text ? (r.text.length>30 ? r.text.substring(0,30)+'...' : r.text) : '';
+      var titleText = r.title || '';
+
+      html += '<div class="history-item">';
+      html += '<div class="hi-top"><span class="hi-subject '+subCls+'">'+subLabel+'</span><span class="hi-date">'+dateLabel+' '+timeLabel+'</span></div>';
+      if(titleText) html += '<div style="font-size:14px;font-weight:600;color:#2D3436;margin-top:4px">📝 '+titleText+'</div>';
+      html += '<div class="hi-duration">⏱ '+durLabel+(textPreview ? ' · '+textPreview : '')+'</div>';
+      html += '<div class="hi-btns">';
+      if(r.hasAudio){
+        html += '<button class="hi-btn play" data-id="'+r.id+'">▶ 回放</button>';
+      }
+      html += '<button class="hi-btn del" data-id="'+r.id+'">🗑 删除</button>';
+      html += '</div></div>';
+    });
+    listEl.innerHTML = html;
+
+    // Bind events
+    listEl.querySelectorAll('.hi-btn.play').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var rid = parseInt(this.getAttribute('data-id'));
+        playHistoryAudio(rid, this);
+      });
+    });
+    listEl.querySelectorAll('.hi-btn.del').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var rid = parseInt(this.getAttribute('data-id'));
+        deleteRecord(rid);
+      });
+    });
+  }
+  showPage('history');
+}
+
+var historyAudio = null;
+function playHistoryAudio(id, btnEl){
+  if(historyAudio){
+    historyAudio.pause();
+    historyAudio = null;
+    if(btnEl) btnEl.textContent = '▶ 回放';
+    return;
+  }
+  getAudioFromDB(id, function(blob){
+    if(!blob){ toast("录音文件已过期"); return; }
+    var url = URL.createObjectURL(blob);
+    historyAudio = new Audio(url);
+    historyAudio.onended = function(){
+      if(btnEl) btnEl.textContent = '▶ 回放';
+      historyAudio = null;
+      URL.revokeObjectURL(url);
+    };
+    historyAudio.play();
+    if(btnEl) btnEl.textContent = '⏸ 播放中';
+  });
+}
+
+function deleteRecord(id){
+  var data = load();
+  var records = data.records || [];
+  var idx = -1;
+  for(var i=0;i<records.length;i++){
+    if(records[i].id===id){ idx=i; break; }
+  }
+  if(idx<0) return;
+
+  records.splice(idx,1);
+  data.records = records;
+  data.total = Math.max(0,(data.total||0)-1);
+
+  // Recalc today count
+  var todayCount = records.filter(function(r){return r.date===today;}).length;
+  // Recalc streak
+  recalcStreak(data);
+  save(data);
+
+  deleteAudioFromDB(id);
+  toast("已删除");
+  openHistory();
+}
+
+function recalcStreak(data){
+  var records = data.records || [];
+  if(records.length===0){ data.streak=0; return; }
+  var dates = [];
+  records.forEach(function(r){ if(dates.indexOf(r.date)<0) dates.push(r.date); });
+  dates.sort().reverse();
+
+  var streak = 1;
+  var d = new Date(dates[0]);
+  for(var i=1;i<dates.length;i++){
+    var prev = new Date(d);
+    prev.setDate(prev.getDate()-1);
+    if(dates[i]===fmtDate(prev)){
+      streak++;
+      d = prev;
+    }else{
+      break;
+    }
+  }
+  // Only count streak if it includes today or yesterday
+  var yesterday = fmtDate(new Date(Date.now()-86400000));
+  if(dates[0]===today || dates[0]===yesterday){
+    data.streak = streak;
+  }else{
+    data.streak = 0;
+  }
+}
+
+// ===== UI Helpers =====
+function toast(msg){
+  var el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(function(){ el.classList.remove('show'); },2000);
+}
+
+function showModal(icon, title, text, color, callback){
+  document.getElementById('modalIcon').textContent = icon;
+  document.getElementById('modalTitle').textContent = title;
+  document.getElementById('modalText').textContent = text;
+  document.getElementById('modalBtn').style.background = color || '#FF6B6B';
+  document.getElementById('modal').classList.add('show');
+  document.getElementById('modalBtn').onclick = function(){
+    document.getElementById('modal').classList.remove('show');
+    if(callback) callback();
+  };
+}
+
+// ===== Event Binding =====
+function bind(id, fn){
+  var el = document.getElementById(id);
+  if(!el) return;
+  el.addEventListener('click', function(e){ e.preventDefault(); fn(); });
+  el.addEventListener('touchend', function(e){ e.preventDefault(); fn(); }, {passive:false});
+}
+
+bind('cardYuwen', function(){ openRecord('yuwen'); });
+bind('cardYingyu', function(){ openRecord('yingyu'); });
+bind('recBack', function(){
+  if(isRecording) stopRecording();
+  showPage('home'); refreshHome();
+});
+bind('histBack', function(){ showPage('home'); refreshHome(); });
+bind('dur10', function(){ selectDuration(10); });
+bind('dur20', function(){ selectDuration(20); });
+bind('dur30', function(){ selectDuration(30); });
+bind('btnRecord', function(){
+  if(!isRecording){
+    startRecording();
+  }else{
+    stopRecording();
+  }
+});
+bind('btnPlay', function(){ togglePlayback(); });
+bind('btnSave', function(){ saveCheckin(false); });
+bind('promoCard', function(){
+  // 暖暖陪读加油站智能体链接（待替换为实际地址）
+  window.open('https://www.coze.cn/s/your-bot-link/', '_blank');
+});
+
+// Add history entry to home header
+var homeHeader = document.querySelector('.home-header');
+var histBtn = document.createElement('div');
+histBtn.style.cssText = 'position:absolute;top:24px;right:20px;font-size:13px;opacity:.85;touch-action:manipulation';
+histBtn.textContent = '📅 记录';
+homeHeader.style.position = 'relative';
+homeHeader.appendChild(histBtn);
+histBtn.addEventListener('click', function(){ openHistory(); });
+histBtn.addEventListener('touchend', function(e){ e.preventDefault(); openHistory(); }, {passive:false});
+
+// ===== Init =====
+refreshHome();
+
+})();
+</script>
+</body>
+</html>
